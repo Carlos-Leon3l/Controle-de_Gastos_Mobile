@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    top: -20, // Faz o botão flutuar
+    top: -20,
     elevation: 8,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },

@@ -34,6 +34,8 @@ export const AppNavigator = () => {
             color: colors.text,
           },
           headerShadowVisible: false,
+          contentStyle: { backgroundColor: colors.background },
+          animation: 'fade',
         }}
       >
         <Stack.Screen

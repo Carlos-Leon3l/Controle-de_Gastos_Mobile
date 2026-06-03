@@ -9,7 +9,6 @@ export const ExpenseProvider = ({ children }) => {
   const [Carregando, setCarregando] = useState(true);
   const [mesAnoAtual, setMesAnoAtual] = useState(dayjs().format('YYYY-MM'));
 
-  // Filtra os gastos baseados no mês/ano atual
   const gastosDoMes = Gastos.filter(g => dayjs(g.data).format('YYYY-MM') === mesAnoAtual);
   const totalReceitas = gastosDoMes
     .filter(g => g.tipo === 'receita')

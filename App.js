@@ -55,10 +55,12 @@ export default function App() {
             <Text style={{ color: colors.primary }}>Iniciando banco de dados...</Text>
           </View>
         ) : (
-          <ExpenseProvider>
-            <AppNavigator />
-            <StatusBar style="light" />
-          </ExpenseProvider>
+          <View style={{ flex: 1, backgroundColor: colors.background }}>
+            <ExpenseProvider>
+              <AppNavigator />
+              <StatusBar style="light" />
+            </ExpenseProvider>
+          </View>
         )}
       </SafeAreaProvider>
     </ErrorBoundary>

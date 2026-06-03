@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usarGastos } from '../contexts/ExpenseContext';
 import { globalStyles } from '../styles/globalStyles';
 import { colors } from '../styles/colors';
 import dayjs from 'dayjs';
+import { CategoryPickerModal } from '../components/CategoryPickerModal';
+import { CalendarPickerModal } from '../components/CalendarPickerModal';
 
 export const AddExpenseScreen = () => {
   const navigation = useNavigation();
@@ -19,24 +21,7 @@ export const AddExpenseScreen = () => {
   const [tipo, setTipo] = useState('despesa');
 
   const [modalCategoriaVisivel, setModalCategoriaVisivel] = useState(false);
-  const [novaCategoria, setNovaCategoria] = useState('');
-  const [categoriasCustomizadas, setCategoriasCustomizadas] = useState([]);
-
-  const categoriasDespesaPadrao = ['Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Contas', 'Educação'];
-  const categoriasReceitaPadrao = ['Salário', 'Investimento', 'Freelance', 'Outros'];
-
-  const categoriasAtuais = tipo === 'despesa' 
-    ? [...categoriasDespesaPadrao, ...categoriasCustomizadas]
-    : [...categoriasReceitaPadrao, ...categoriasCustomizadas];
-
-  const adicionarCategoriaCustomizada = () => {
-    if (novaCategoria.trim()) {
-      setCategoriasCustomizadas(prev => [...prev, novaCategoria.trim()]);
-      setCategoria(novaCategoria.trim());
-      setNovaCategoria('');
-      setModalCategoriaVisivel(false);
-    }
-  };
+  const [modalDataVisivel, setModalDataVisivel] = useState(false);
 
   const salvarGasto = async () => {
     if (!descricao.trim() || !categoria.trim() || !valor.trim() || !data.trim()) {
@@ -104,8 +89,8 @@ export const AddExpenseScreen = () => {
           />
 
           <Text style={styles.label}>Categoria</Text>
-          <TouchableOpacity 
-            style={[globalStyles.input, { justifyContent: 'center' }]} 
+          <TouchableOpacity
+            style={[globalStyles.input, { justifyContent: 'center' }]}
             onPress={() => setModalCategoriaVisivel(true)}
           >
             <Text style={{ color: categoria ? colors.text : colors.textSecondary, fontSize: 16 }}>
@@ -123,14 +108,15 @@ export const AddExpenseScreen = () => {
             onChangeText={setValor}
           />
 
-          <Text style={styles.label}>Data (DD-MM-YYYY)</Text>
-          <TextInput
-            style={globalStyles.input}
-            placeholder="Ex: 25-10-2023"
-            placeholderTextColor={colors.textSecondary}
-            value={data}
-            onChangeText={setData}
-          />
+          <Text style={styles.label}>Data</Text>
+          <TouchableOpacity
+            style={[globalStyles.input, { justifyContent: 'center' }]}
+            onPress={() => setModalDataVisivel(true)}
+          >
+            <Text style={{ color: colors.text, fontSize: 16 }}>
+              {data}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={globalStyles.button} onPress={salvarGasto}>
@@ -138,42 +124,20 @@ export const AddExpenseScreen = () => {
         </TouchableOpacity>
       </ScrollView>
 
-      <Modal visible={modalCategoriaVisivel} transparent={true} animationType="slide">
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Escolha a Categoria</Text>
-            
-            <View style={styles.pillContainer}>
-              {categoriasAtuais.map(cat => (
-                <TouchableOpacity 
-                  key={cat} 
-                  style={[styles.pill, categoria === cat && styles.pillActive]}
-                  onPress={() => { setCategoria(cat); setModalCategoriaVisivel(false); }}
-                >
-                  <Text style={[styles.pillText, categoria === cat && styles.pillTextActive]}>{cat}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+      <CategoryPickerModal
+        visible={modalCategoriaVisivel}
+        onClose={() => setModalCategoriaVisivel(false)}
+        onSelect={setCategoria}
+        tipo={tipo}
+        categoriaSelecionada={categoria}
+      />
 
-            <View style={styles.novaCategoriaContainer}>
-              <TextInput 
-                style={[globalStyles.input, { flex: 1, marginBottom: 0, marginRight: 10, paddingVertical: 10 }]}
-                placeholder="Ou digite nova..."
-                placeholderTextColor={colors.textSecondary}
-                value={novaCategoria}
-                onChangeText={setNovaCategoria}
-              />
-              <TouchableOpacity style={styles.addPillBtn} onPress={adicionarCategoriaCustomizada}>
-                <Text style={styles.addPillText}>Adicionar</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity style={styles.fecharModalBtn} onPress={() => setModalCategoriaVisivel(false)}>
-              <Text style={styles.fecharModalText}>Cancelar</Text>
-            </TouchableOpacity>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+      <CalendarPickerModal
+        visible={modalDataVisivel}
+        onClose={() => setModalDataVisivel(false)}
+        onSelect={setData}
+        dataSelecionada={data}
+      />
 
     </KeyboardAvoidingView>
   );
@@ -217,76 +181,5 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     color: colors.background,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    minHeight: '50%',
-    paddingBottom: 40,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  pillContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  pill: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    marginBottom: 10,
-    marginRight: 10,
-  },
-  pillActive: {
-    borderColor: colors.primary,
-    backgroundColor: 'rgba(0, 240, 255, 0.1)',
-  },
-  pillText: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  pillTextActive: {
-    color: colors.primary,
-  },
-  novaCategoriaContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  addPillBtn: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  addPillText: {
-    color: colors.background,
-    fontWeight: 'bold',
-  },
-  fecharModalBtn: {
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  fecharModalText: {
-    color: colors.danger,
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
